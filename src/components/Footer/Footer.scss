@@ -1,0 +1,40 @@
+@use "../../styles/variables" as *;
+
+.Footer {
+  padding-block: 48px;
+  border-top: 1px solid black;
+
+  &__container {
+    display: grid;
+    grid-template-columns: repeat(12, 90px);
+    gap: 0 20px;
+  }
+
+  &__info {
+    grid-column: 1/7;
+  }
+
+  &__email {
+    color: $link-text-blue;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $link-bg-blue-hover;
+    }
+  }
+
+  &__address {
+    display: flex;
+    flex-direction: column;   
+
+    font-style: normal;
+
+    span {
+      display: block;
+
+      &:first-child {
+        font-weight: 600;
+      }
+    }
+  }
+}

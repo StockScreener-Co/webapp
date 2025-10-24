@@ -1,0 +1,29 @@
+@use "./styles/variables" as *;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+body {
+  background-color: #282832;
+  color: $primary-text-color;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.main {
+  flex: 1;
+}
+
+.container {
+  width: 1340px;
+  padding-inline: 20px;
+  margin: 0 auto;
+}

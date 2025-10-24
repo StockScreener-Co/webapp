@@ -1,0 +1,101 @@
+@use "../../styles/variables" as *;
+
+.Hero {
+  display: grid;
+  grid-template-columns: repeat(12, 90px);
+  gap: 0 20px;
+  margin: 0 auto;
+
+  background-image: url("../../../public/images/hero/hero_bg-image.png");
+  background-size: contain;
+  background-position: right center;
+  background-repeat: no-repeat;
+
+  &__title {
+    grid-column: span 6;
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1;
+  }
+
+  &__title--gradient {
+    display: block;
+    background: linear-gradient(to right, #04adf5, #737bf9, #9a6afa);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  &__title--white {
+    color: #fff;
+  }
+
+  &__list {
+    grid-column: 1/6;
+    display: flex;
+    flex-direction: column;
+
+    list-style-position: outside;
+    padding-left: 20px;
+
+    margin-bottom: 36px;
+  }
+
+  &__item {
+    color: $secondary-text-color;
+
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 500;
+    text-indent: -4px;
+
+    &::marker {
+      color: $link-bg-blue;
+    }
+  }
+
+  &__links {
+    grid-column: 1/6;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__link {
+    font-size: 16px;
+    font-weight: 500;
+    display: block;
+    padding: 20px 24px;
+    text-decoration: none;
+    border-radius: 8px;
+  }
+
+  &__link--start {
+    background: $link-bg-blue;
+    color: $secondary-text-color;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: $link-bg-blue-hover;
+    }
+  }
+
+  &__link--demo {
+    border: 1px solid $link-text-blue;
+    color: $link-text-blue;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+      background-color: $link-bg-blue;
+      color: $secondary-text-color;
+    }
+  }
+
+  &__trial-info {
+    grid-column: 1/6;
+    font-size: 12px;
+    line-height: 14px;
+  }
+}

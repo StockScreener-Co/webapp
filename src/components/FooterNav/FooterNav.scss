@@ -1,0 +1,31 @@
+@use '../../styles/variables' as *;
+
+.FooterNav {
+  display: flex;
+  gap: 20px;
+  grid-column: 7/-1;
+
+  &__title {
+    color: $secondary-text-color;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    list-style: none;
+    padding: 0;
+  }
+
+  &__link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: $link-bg-blue;
+    }
+  }
+}

@@ -1,0 +1,69 @@
+@use "../../styles/variables" as *;
+
+.Header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background-color: $secondary-bg-color;
+
+  border-bottom: 1px solid black;
+  padding-block: 12px;
+
+  &__container {
+    display: flex;
+    align-items: center;
+  }
+
+  &__logo {
+    margin-right: 36px;
+    color: #FFF;
+    text-decoration: none;
+    letter-spacing: 1px;
+    font-size: 20px;
+  }
+
+  &__auth {
+    display: flex;
+    gap: 12px;
+    margin: 0 0 0 auto;
+    padding: 0;
+
+    list-style: none;
+  }
+
+  &__sign-in {
+    display: block;
+    padding: 8px 16px;
+
+    background-color: $link-bg-gray;
+    color: $link-text-blue;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    line-height: 21px;
+
+     &:hover {
+      background-color: $link-bg-blue;
+      color: $secondary-text-color;
+      transition: background-color 0.3s ease;
+    }
+  }
+
+  &__start {
+    display: block;
+    padding: 8px 16px;
+    
+    background-color: $link-bg-blue;
+    color: #DAF3FD;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    line-height: 21px;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: $link-bg-blue-hover;
+    }
+  }
+}
