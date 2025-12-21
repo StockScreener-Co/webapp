@@ -5,14 +5,16 @@ interface CreatePortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (portfolioName: string) => void;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
-export const CreatePortfolioModal = ({ isOpen, onClose, onSubmit }: CreatePortfolioModalProps) => {
+export const CreatePortfolioModal = ({ isOpen, onClose, onSubmit, isLoading = false, error }: CreatePortfolioModalProps) => {
   const [portfolioName, setPortfolioName] = useState('');
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape' && isOpen && !isLoading) {
         onClose();
       }
     };
@@ -26,16 +28,20 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSubmit }: CreatePortfo
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isLoading]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPortfolioName('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (portfolioName.trim()) {
+    if (portfolioName.trim() && !isLoading) {
       onSubmit(portfolioName.trim());
-      setPortfolioName('');
-      onClose();
     }
   };
 
@@ -67,22 +73,29 @@ export const CreatePortfolioModal = ({ isOpen, onClose, onSubmit }: CreatePortfo
               className="CreatePortfolioModal__input"
               placeholder="Enter portfolio name"
               autoFocus
+              disabled={isLoading}
             />
+            {error && (
+              <div className="CreatePortfolioModal__error">
+                {error}
+              </div>
+            )}
           </div>
           <div className="CreatePortfolioModal__actions">
             <button
               type="button"
               onClick={onClose}
               className="CreatePortfolioModal__btn CreatePortfolioModal__btn--cancel"
+              disabled={isLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
               className="CreatePortfolioModal__btn CreatePortfolioModal__btn--submit"
-              disabled={!portfolioName.trim()}
+              disabled={!portfolioName.trim() || isLoading}
             >
-              Create
+              {isLoading ? 'Creating...' : 'Create'}
             </button>
           </div>
         </form>

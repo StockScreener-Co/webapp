@@ -1,22 +1,39 @@
 import { useState } from 'react';
 import { Link } from "react-router-dom";
 import { CreatePortfolioModal } from '../CreatePortfolioModal/CreatePortfolioModal';
+import { createPortfolio } from '../../api/portfolioApi';
 import './HeaderNav.scss';
 
 export const Navigation = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleCreatePortfolio = () => {
     setIsModalOpen(true);
+    setError(null);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setError(null);
   };
 
-  const handleSubmitPortfolio = (portfolioName: string) => {
-    console.log('Creating portfolio:', portfolioName);
-    // Здесь будет логика создания портфолио
+  const handleSubmitPortfolio = async (portfolioName: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await createPortfolio(portfolioName);
+      setIsModalOpen(false);
+      // Можно добавить уведомление об успешном создании
+      console.log('Portfolio created successfully:', portfolioName);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create portfolio');
+      console.error('Error creating portfolio:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -46,6 +63,8 @@ export const Navigation = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleSubmitPortfolio}
+        isLoading={isLoading}
+        error={error}
       />
     </>
   );
