@@ -35,3 +35,28 @@ export const createPortfolio = async (name: string): Promise<Portfolio> => {
   }
 };
 
+export const getMyPortfolios = async (): Promise<Portfolio[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/portfolios/my`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch portfolios: ${response.status} ${errorText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error(
+        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
+      );
+    }
+    throw error;
+  }
+};
+
