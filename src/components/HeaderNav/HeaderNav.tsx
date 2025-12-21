@@ -6,22 +6,13 @@ export const Navigation = () => {
     <nav className="Navigation">
       <ul className="Navigation__list">
         <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Features</Link>
+          <Link to="#features" className='Navigation__link'>Dashboard</Link>
         </li>
         <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Tracking</Link>
+          <Link to="#screener" className='Navigation__link'>Screener</Link>
         </li>
         <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Dividends</Link>
-        </li>
-        <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Tools</Link>
-        </li>
-        <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Community</Link>
-        </li>
-        <li className="Navigation__item">
-          <Link to="" className='Navigation__link'>Pricing</Link>
+          <Link to="#pricing" className='Navigation__link'>Portfolios</Link>
         </li>
       </ul>
     </nav>

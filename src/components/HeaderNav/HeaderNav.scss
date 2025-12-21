@@ -1,29 +1,29 @@
 @use '../../styles/variables' as *;
 
 .Navigation {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
 
   &__list {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 32px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   &__link {
-    display: block;
-    padding: 8px 16px;
+    font-size: 14px;
     color: $primary-text-color;
     text-decoration: none;
-    border-radius: 8px;
-
-    font-weight: 500;
-    line-height: 21px;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: color 0.2s;
 
     &:hover {
       color: $secondary-text-color;
-      background-color: rgb(78, 80, 95);
     }
   }
 }

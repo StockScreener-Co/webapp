@@ -7,16 +7,14 @@ export const Header = () => {
     <header className='Header'>
       <div className='container'>
         <div className='Header__container'>
-          <Link to="/" className='Header__logo'>TickerScreener</Link>
+          <Link to="/" className='Header__logo'>
+            <div className='Header__logo-icon'>SS</div>
+            <span className='Header__logo-text'>StockScreener</span>
+          </Link>
           <Navigation />
-          <ul className='Header__auth'>
-            <li className='Header__item'>
-              <Link to="" className='Header__sign-in'>Sign in</Link>
-            </li>
-            <li className='Header__item'>
-              <Link to="" className='Header__start'>Start for free</Link>
-            </li>
-          </ul>
+          <div className='Header__actions'>
+            <button className='Header__logout'>Log out</button>
+          </div>
         </div>
       </div>
     </header>

@@ -1,69 +1,60 @@
 @use "../../styles/variables" as *;
 
 .Header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  background-color: $secondary-bg-color;
-
-  border-bottom: 1px solid black;
-  padding-block: 12px;
+  border-bottom: 1px solid $border-slate-800;
+  background-color: $bg-slate-950;
 
   &__container {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
   }
 
   &__logo {
-    margin-right: 36px;
-    color: #FFF;
-    text-decoration: none;
-    letter-spacing: 1px;
-    font-size: 20px;
-  }
-
-  &__auth {
     display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  &__logo-icon {
+    height: 32px;
+    width: 32px;
+    border-radius: 8px;
+    background-color: $indigo-500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+  }
+
+  &__logo-text {
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.025em;
+    color: $secondary-text-color;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
     gap: 12px;
-    margin: 0 0 0 auto;
-    padding: 0;
-
-    list-style: none;
   }
 
-  &__sign-in {
-    display: block;
-    padding: 8px 16px;
-
-    background-color: $link-bg-gray;
-    color: $link-text-blue;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    line-height: 21px;
-
-     &:hover {
-      background-color: $link-bg-blue;
-      color: $secondary-text-color;
-      transition: background-color 0.3s ease;
-    }
-  }
-
-  &__start {
-    display: block;
-    padding: 8px 16px;
-    
-    background-color: $link-bg-blue;
-    color: #DAF3FD;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    line-height: 21px;
-    transition: background-color 0.3s ease;
+  &__logout {
+    font-size: 14px;
+    color: $primary-text-color;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
 
     &:hover {
-      background-color: $link-bg-blue-hover;
+      color: $secondary-text-color;
     }
   }
 }

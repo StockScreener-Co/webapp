@@ -1,12 +1,35 @@
-$primary-text-color: #adb5bd;
-$secondary-text-color: #ffffff;
+// Colors
+$primary-text-color: #cbd5e1; // slate-300
+$secondary-text-color: #ffffff; // white
+$text-slate-400: #94a3b8; // slate-400
+$text-slate-500: #64748b; // slate-500
 
-$secondary-bg-color: rgb(50, 50, 62);
+// Background colors
+$bg-slate-950: #020617; // slate-950
+$bg-slate-900: #0f172a; // slate-900
+$bg-slate-800: #1e293b; // slate-800
+$secondary-bg-color: $bg-slate-950;
 
+// Border colors
+$border-slate-800: #1e293b;
+$border-slate-900: #0f172a;
+$border-slate-700: #334155;
+$border-slate-500: #64748b;
 
+// Accent colors
+$indigo-500: #6366f1;
+$indigo-400: #818cf8;
+$emerald-300: #6ee7b7;
+$emerald-400: #34d399;
+$emerald-500: #10b981;
+$emerald-950: #022c22;
+$red-400: #f87171;
+
+// Link colors
 $link-bg-gray: rgba(120, 201, 234, 0.18);
-$link-bg-blue: rgb(0, 175, 245);
+$link-bg-blue: $indigo-500;
+$link-bg-blue-hover: $indigo-400;
+$link-text-blue: $indigo-500;
 
-$link-bg-blue-hover: rgb(24, 125, 228);
-
-$link-text-blue: rgb(0, 175, 245);
+// Container
+$container-max-width: 1152px; // max-w-6xl

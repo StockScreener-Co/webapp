@@ -12,10 +12,11 @@
 }
 
 body {
-  background-color: #282832;
-  color: $primary-text-color;
+  background-color: $bg-slate-950;
+  color: $secondary-text-color;
   font-size: 14px;
   line-height: 1.5;
+  min-height: 100vh;
 }
 
 .main {
@@ -23,7 +24,8 @@ body {
 }
 
 .container {
-  width: 1340px;
-  padding-inline: 20px;
+  max-width: $container-max-width;
+  width: 100%;
+  padding-inline: 16px;
   margin: 0 auto;
 }
