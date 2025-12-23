@@ -1,6 +1,57 @@
+import { useState } from 'react';
 import './PortfolioPage.scss';
+import { AddTransactionModal, AddTransactionForm } from '../../components/AddTransactionModal/AddTransactionModal';
+import { createTransaction } from '../../api/portfolioApi';
 
 export const PortfolioPage = () => {
+  // TODO: заменить на реальный ID портфеля из роут-параметра или данных
+  const portfolioId = 'replace-with-real-portfolio-id';
+
+  const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [isTxLoading, setIsTxLoading] = useState(false);
+  const [txError, setTxError] = useState<string | null>(null);
+  const [txSuccess, setTxSuccess] = useState<string | null>(null);
+
+  const openTxModal = () => {
+    setTxError(null);
+    setTxSuccess(null);
+    setIsTxModalOpen(true);
+  };
+
+  const closeTxModal = () => {
+    if (isTxLoading) return;
+    setIsTxModalOpen(false);
+  };
+
+  const handleSubmitTransaction = async (form: AddTransactionForm) => {
+    if (!portfolioId) {
+      setTxError('Portfolio ID is missing. Please set portfolioId.');
+      return;
+    }
+
+    setIsTxLoading(true);
+    setTxError(null);
+    setTxSuccess(null);
+
+    try {
+      await createTransaction(portfolioId, {
+        instrumentId: form.instrumentId.trim(),
+        tradeDate: form.tradeDate,
+        price: Number(form.price),
+        operationType: form.operationType,
+        quantity: Number(form.quantity),
+      });
+
+      setTxSuccess('Transaction created successfully');
+      setIsTxModalOpen(false);
+      // TODO: обновить данные портфеля/холдингов после создания
+    } catch (err) {
+      setTxError(err instanceof Error ? err.message : 'Failed to create transaction');
+    } finally {
+      setIsTxLoading(false);
+    }
+  };
+
   return (
     <main className="PortfolioPage">
       {/* Portfolio Header Section */}
@@ -20,7 +71,7 @@ export const PortfolioPage = () => {
               <button className="PortfolioPage__btn PortfolioPage__btn--secondary">
                 Analytics
               </button>
-              <button className="PortfolioPage__btn PortfolioPage__btn--primary">
+              <button className="PortfolioPage__btn PortfolioPage__btn--primary" onClick={openTxModal}>
                 + Add Transaction
               </button>
             </div>
@@ -250,6 +301,25 @@ export const PortfolioPage = () => {
           </div>
         </div>
       </section>
+
+      {txSuccess && (
+        <div className="PortfolioPage__toast PortfolioPage__toast--success">
+          {txSuccess}
+        </div>
+      )}
+      {txError && (
+        <div className="PortfolioPage__toast PortfolioPage__toast--error">
+          {txError}
+        </div>
+      )}
+
+      <AddTransactionModal
+        isOpen={isTxModalOpen}
+        onClose={closeTxModal}
+        onSubmit={handleSubmitTransaction}
+        isLoading={isTxLoading}
+        error={txError}
+      />
     </main>
   );
 };

@@ -3,6 +3,29 @@
 .PortfolioPage {
   flex: 1;
 
+  &__toast {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 12000;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    border: 1px solid transparent;
+
+    &--success {
+      background-color: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: $emerald-400;
+    }
+
+    &--error {
+      background-color: rgba(248, 113, 113, 0.12);
+      border-color: rgba(248, 113, 113, 0.35);
+      color: $red-400;
+    }
+  }
+
   &__header {
     border-bottom: 1px solid $border-slate-900;
     background-color: rgba(2, 6, 23, 0.9);
