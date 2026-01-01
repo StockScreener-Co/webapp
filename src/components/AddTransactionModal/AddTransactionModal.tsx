@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './AddTransactionModal.scss';
+import { searchInstruments, Instrument, getInstrumentPrice } from '../../api/instrumentApi';
 
 export type OperationType = 'BUY' | 'SELL' | 'DIVIDEND' | 'DEPOSIT' | 'WITHDRAW';
 
@@ -28,13 +29,63 @@ export const AddTransactionModal = ({
   isLoading = false,
   error,
 }: AddTransactionModalProps) => {
+  const getTodayDate = () => new Date().toISOString().split('T')[0];
+
   const [form, setForm] = useState<AddTransactionForm>({
     instrumentId: '',
-    tradeDate: '',
+    tradeDate: getTodayDate(),
     price: '',
     operationType: 'BUY',
     quantity: '',
   });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Instrument[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isFetchingPrice, setIsFetchingPrice] = useState(false);
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      if (form.instrumentId && form.tradeDate) {
+        setIsFetchingPrice(true);
+        try {
+          const price = await getInstrumentPrice(form.instrumentId, form.tradeDate);
+          if (price !== undefined && price !== null) {
+            setForm(prev => ({ ...prev, price: price.toString() }));
+          }
+        } catch (err) {
+          console.error('Failed to fetch price:', err);
+        } finally {
+          setIsFetchingPrice(false);
+        }
+      }
+    };
+
+    fetchPrice();
+  }, [form.instrumentId, form.tradeDate]);
+
+  useEffect(() => {
+    if (!searchTerm?.trim() || form.instrumentId) {
+      if (!searchTerm?.trim()) setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchInstruments(searchTerm);
+        setSearchResults(results);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -55,8 +106,28 @@ export const AddTransactionModal = ({
   }, [isOpen, onClose, isLoading]);
 
   useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showSuggestions && !(e.target as HTMLElement).closest('.AddTransactionModal__autocomplete')) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSuggestions]);
+
+  useEffect(() => {
     if (!isOpen) {
-      setForm({ instrumentId: '', tradeDate: '', price: '', operationType: 'BUY', quantity: '' });
+      setForm({
+        instrumentId: '',
+        tradeDate: getTodayDate(),
+        price: '',
+        operationType: 'BUY',
+        quantity: ''
+      });
+      setSearchTerm('');
+      setSearchResults([]);
+      setShowSuggestions(false);
     }
   }, [isOpen]);
 
@@ -64,7 +135,7 @@ export const AddTransactionModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.instrumentId.trim() || !form.tradeDate || !form.price || !form.quantity) return;
+    if (!form.instrumentId?.trim() || !form.tradeDate || !form.price || !form.quantity) return;
     onSubmit(form);
   };
 
@@ -76,6 +147,13 @@ export const AddTransactionModal = ({
 
   const handleChange = (field: keyof AddTransactionForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleInstrumentSelect = (instrument: Instrument) => {
+    setForm((prev) => ({ ...prev, instrumentId: instrument.id }));
+    setSearchTerm(instrument.ticker);
+    setSearchResults([]);
+    setShowSuggestions(false);
   };
 
   return (
@@ -90,26 +168,67 @@ export const AddTransactionModal = ({
         <form onSubmit={handleSubmit} className="AddTransactionModal__form">
           <div className="AddTransactionModal__grid">
             <div className="AddTransactionModal__field">
-              <label className="AddTransactionModal__label" htmlFor="instrumentId">Instrument ID (UUID)</label>
-              <input
-                id="instrumentId"
-                type="text"
-                value={form.instrumentId}
-                onChange={(e) => handleChange('instrumentId', e.target.value)}
-                className="AddTransactionModal__input"
-                placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000"
-                disabled={isLoading}
-                required
-              />
+              <label className="AddTransactionModal__label" htmlFor="instrumentId">Ticker/Company</label>
+              <div className="AddTransactionModal__autocomplete">
+                <div className={`AddTransactionModal__input-wrapper ${form.instrumentId ? 'AddTransactionModal__input-wrapper--selected' : ''}`}>
+                  <input
+                    id="instrumentId"
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      if (form.instrumentId) {
+                        setForm(prev => ({ ...prev, instrumentId: '' }));
+                      }
+                    }}
+                    className="AddTransactionModal__input"
+                    placeholder="e.g. AAPL"
+                    disabled={isLoading}
+                    autoComplete="off"
+                    required
+                  />
+                  {form.instrumentId && (
+                    <button
+                      type="button"
+                      className="AddTransactionModal__clear-btn"
+                      onClick={() => {
+                        setForm(prev => ({ ...prev, instrumentId: '' }));
+                        setSearchTerm('');
+                        setSearchResults([]);
+                      }}
+                      disabled={isLoading}
+                      title="Clear selection"
+                    >
+                      ×
+                    </button>
+                  )}
+                  {isSearching && <div className="AddTransactionModal__loading-spinner" />}
+                </div>
+                {showSuggestions && searchResults.length > 0 && (
+                  <ul className="AddTransactionModal__suggestions">
+                    {searchResults.map((instrument) => (
+                      <li
+                        key={instrument.id}
+                        className="AddTransactionModal__suggestion-item"
+                        onClick={() => handleInstrumentSelect(instrument)}
+                      >
+                        <span className="AddTransactionModal__suggestion-ticker">{instrument.ticker}</span>
+                        <span className="AddTransactionModal__suggestion-name">{instrument.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
 
             <div className="AddTransactionModal__field">
-              <label className="AddTransactionModal__label" htmlFor="tradeDate">Trade Date</label>
+              <label className="AddTransactionModal__label" htmlFor="tradeDate">Date</label>
               <input
                 id="tradeDate"
                 type="date"
                 value={form.tradeDate}
                 onChange={(e) => handleChange('tradeDate', e.target.value)}
+                onClick={(e) => e.currentTarget.showPicker()}
                 className="AddTransactionModal__input"
                 disabled={isLoading}
                 required
@@ -118,17 +237,20 @@ export const AddTransactionModal = ({
 
             <div className="AddTransactionModal__field">
               <label className="AddTransactionModal__label" htmlFor="price">Price</label>
-              <input
-                id="price"
-                type="number"
-                min="0"
-                step="0.0001"
-                value={form.price}
-                onChange={(e) => handleChange('price', e.target.value)}
-                className="AddTransactionModal__input"
-                disabled={isLoading}
-                required
-              />
+              <div className="AddTransactionModal__input-wrapper">
+                <input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.0001"
+                  value={form.price}
+                  onChange={(e) => handleChange('price', e.target.value)}
+                  className="AddTransactionModal__input"
+                  disabled={isLoading || isFetchingPrice}
+                  required
+                />
+                {isFetchingPrice && <div className="AddTransactionModal__loading-spinner" />}
+              </div>
             </div>
 
             <div className="AddTransactionModal__field">
@@ -148,7 +270,7 @@ export const AddTransactionModal = ({
             </div>
 
             <div className="AddTransactionModal__field">
-              <label className="AddTransactionModal__label" htmlFor="quantity">Quantity</label>
+              <label className="AddTransactionModal__label" htmlFor="quantity">Shares</label>
               <input
                 id="quantity"
                 type="number"
@@ -177,7 +299,7 @@ export const AddTransactionModal = ({
             <button
               type="submit"
               className="AddTransactionModal__btn AddTransactionModal__btn--submit"
-              disabled={isLoading || !form.instrumentId.trim() || !form.tradeDate || !form.price || !form.quantity}
+              disabled={isLoading || !form.instrumentId?.trim() || !form.tradeDate || !form.price || !form.quantity}
             >
               {isLoading ? 'Saving...' : 'Create'}
             </button>
