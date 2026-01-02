@@ -17,6 +17,29 @@ export interface TransactionRequestDto {
   quantity: number;
 }
 
+export interface AssetDto {
+  id: string;
+  symbol: string;
+  name: string;
+  quantity: number;
+  averagePrice: number;
+  costBasis: number;
+  currentPrice: number;
+  currentValue: number;
+  dividendPerShare: number;
+  dividendsTotal: number;
+  dividendYieldRate: number;
+  dividendYieldOnCostRate: number;
+  totalProfit: number;
+  totalProfitRate: number;
+}
+
+export interface PortfolioDetailsDto {
+  id: string;
+  name: string;
+  assetDtos: AssetDto[];
+}
+
 export const createPortfolio = async (name: string): Promise<Portfolio> => {
   try {
     const response = await fetch(`${API_BASE_URL}/portfolios`, {
@@ -60,6 +83,31 @@ export const createTransaction = async (
       const errorText = await response.text();
       throw new Error(`Failed to create transaction: ${response.status} ${errorText}`);
     }
+  } catch (error) {
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error(
+        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
+      );
+    }
+    throw error;
+  }
+};
+
+export const getPortfolioDetails = async (id: string): Promise<PortfolioDetailsDto> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/portfolios/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch portfolio details: ${response.status} ${errorText}`);
+    }
+
+    return response.json();
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error(

@@ -1,16 +1,39 @@
-import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 import './PortfolioPage.scss';
 import { AddTransactionModal, AddTransactionForm } from '../../components/AddTransactionModal/AddTransactionModal';
-import { createTransaction } from '../../api/portfolioApi';
+import { createTransaction, getPortfolioDetails, PortfolioDetailsDto } from '../../api/portfolioApi';
 
 export const PortfolioPage = () => {
-  // TODO: заменить на реальный ID портфеля из роут-параметра или данных
-  const portfolioId = 'replace-with-real-portfolio-id';
+  const { id: portfolioId } = useParams<{ id: string }>();
 
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [isTxLoading, setIsTxLoading] = useState(false);
   const [txError, setTxError] = useState<string | null>(null);
   const [txSuccess, setTxSuccess] = useState<string | null>(null);
+
+  const [portfolioDetails, setPortfolioDetails] = useState<PortfolioDetailsDto | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
+
+  const loadPortfolioDetails = useCallback(async () => {
+    if (!portfolioId) return;
+
+    setIsLoadingDetails(true);
+    setDetailsError(null);
+    try {
+      const data = await getPortfolioDetails(portfolioId);
+      setPortfolioDetails(data);
+    } catch (err) {
+      setDetailsError(err instanceof Error ? err.message : 'Failed to load portfolio details');
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }, [portfolioId]);
+
+  useEffect(() => {
+    loadPortfolioDetails();
+  }, [loadPortfolioDetails]);
 
   const openTxModal = () => {
     setTxError(null);
@@ -25,7 +48,7 @@ export const PortfolioPage = () => {
 
   const handleSubmitTransaction = async (form: AddTransactionForm) => {
     if (!portfolioId) {
-      setTxError('Portfolio ID is missing. Please set portfolioId.');
+      setTxError('Portfolio ID is missing.');
       return;
     }
 
@@ -34,23 +57,55 @@ export const PortfolioPage = () => {
     setTxSuccess(null);
 
     try {
-      await createTransaction(portfolioId, {
+      const payload = {
         instrumentId: form.instrumentId.trim(),
         tradeDate: form.tradeDate,
         price: Number(form.price),
         operationType: form.operationType,
         quantity: Number(form.quantity),
-      });
+      };
+
+      console.log('Submitting transaction:', payload);
+
+      await createTransaction(portfolioId, payload);
 
       setTxSuccess('Transaction created successfully');
       setIsTxModalOpen(false);
-      // TODO: обновить данные портфеля/холдингов после создания
+      // Перезапрашиваем данные портфеля после создания транзакции
+      loadPortfolioDetails();
     } catch (err) {
       setTxError(err instanceof Error ? err.message : 'Failed to create transaction');
     } finally {
       setIsTxLoading(false);
     }
   };
+
+  if (isLoadingDetails && !portfolioDetails) {
+    return (
+      <main className="PortfolioPage">
+        <div className="container">
+          <div style={{ padding: '2rem', textAlign: 'center' }}>Loading portfolio details...</div>
+        </div>
+      </main>
+    );
+  }
+
+  if (detailsError && !portfolioDetails) {
+    return (
+      <main className="PortfolioPage">
+        <div className="container">
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--error-color)' }}>
+            Error: {detailsError}
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const totalNetWorth = portfolioDetails?.assetDtos.reduce((sum, asset) => sum + asset.currentValue, 0) || 0;
+  const totalCostBasis = portfolioDetails?.assetDtos.reduce((sum, asset) => sum + asset.costBasis, 0) || 0;
+  const totalProfit = portfolioDetails?.assetDtos.reduce((sum, asset) => sum + asset.totalProfit, 0) || 0;
+  const totalProfitRate = totalCostBasis > 0 ? (totalProfit / totalCostBasis) * 100 : 0;
 
   return (
     <main className="PortfolioPage">
@@ -60,11 +115,11 @@ export const PortfolioPage = () => {
           <div className="PortfolioPage__header-content">
             <div>
               <div className="PortfolioPage__title-row">
-                <h1 className="PortfolioPage__title">Main Dividend Portfolio</h1>
+                <h1 className="PortfolioPage__title">{portfolioDetails?.name || 'Portfolio'}</h1>
                 <span className="PortfolioPage__badge">Active</span>
               </div>
               <p className="PortfolioPage__subtitle">
-                Created on Nov 25, 2023 · Cash available: <span className="PortfolioPage__cash">$2,450.00</span>
+                ID: {portfolioId} · Holdings: {portfolioDetails?.assetDtos.length || 0}
               </p>
             </div>
             <div className="PortfolioPage__actions">
@@ -85,31 +140,36 @@ export const PortfolioPage = () => {
           <div className="PortfolioPage__stats-grid">
             <div className="PortfolioPage__stat-card">
               <p className="PortfolioPage__stat-label">Net Worth</p>
-              <p className="PortfolioPage__stat-value">$42,590.25</p>
-              <p className="PortfolioPage__stat-description">Cash + Holdings</p>
+              <p className="PortfolioPage__stat-value">${totalNetWorth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+              <p className="PortfolioPage__stat-description">Holdings Value</p>
             </div>
 
             <div className="PortfolioPage__stat-card">
               <p className="PortfolioPage__stat-label">Day Change</p>
               <div className="PortfolioPage__stat-change-row">
-                <p className="PortfolioPage__stat-value PortfolioPage__stat-value--positive">+$624.10</p>
-                <span className="PortfolioPage__stat-badge PortfolioPage__stat-badge--positive">+1.48%</span>
+                <p className="PortfolioPage__stat-value">---</p>
+                <span className="PortfolioPage__stat-badge">0.00%</span>
               </div>
             </div>
 
             <div className="PortfolioPage__stat-card">
               <p className="PortfolioPage__stat-label">Total Profit/Loss</p>
               <div className="PortfolioPage__stat-change-row">
-                <p className="PortfolioPage__stat-value PortfolioPage__stat-value--positive">+$8,120.00</p>
-                <span className="PortfolioPage__stat-percent PortfolioPage__stat-percent--positive">+23.5%</span>
+                <p className={`PortfolioPage__stat-value ${totalProfit >= 0 ? 'PortfolioPage__stat-value--positive' : 'PortfolioPage__stat-value--negative'}`}>
+                  {totalProfit >= 0 ? '+' : ''}${totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <span className={`PortfolioPage__stat-percent ${totalProfitRate >= 0 ? 'PortfolioPage__stat-percent--positive' : 'PortfolioPage__stat-percent--negative'}`}>
+                  {totalProfitRate >= 0 ? '+' : ''}{totalProfitRate.toFixed(2)}%
+                </span>
               </div>
             </div>
 
             <div className="PortfolioPage__stat-card">
-              <p className="PortfolioPage__stat-label">Dividend Yield (Avg)</p>
+              <p className="PortfolioPage__stat-label">Total Dividends</p>
               <div className="PortfolioPage__stat-change-row">
-                <p className="PortfolioPage__stat-value">3.42%</p>
-                <span className="PortfolioPage__stat-description">~$1,450 / yr</span>
+                <p className="PortfolioPage__stat-value">
+                  ${(portfolioDetails?.assetDtos.reduce((sum, asset) => sum + asset.dividendsTotal, 0) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
             </div>
           </div>
@@ -213,89 +273,52 @@ export const PortfolioPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>
-                      <div className="PortfolioPage__ticker-cell">
-                        <div className="PortfolioPage__ticker-icon">AP</div>
-                        <div>
-                          <a href="#" className="PortfolioPage__ticker-link">AAPL</a>
-                          <div className="PortfolioPage__ticker-name">Apple Inc.</div>
+                  {(portfolioDetails?.assetDtos || []).map((asset) => (
+                    <tr key={asset.id}>
+                      <td>
+                        <div className="PortfolioPage__ticker-cell">
+                          <div className="PortfolioPage__ticker-icon">{asset.symbol.slice(0, 2).toUpperCase()}</div>
+                          <div>
+                            <a href="#" className="PortfolioPage__ticker-link">{asset.symbol}</a>
+                            <div className="PortfolioPage__ticker-name">{asset.name}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="PortfolioPage__table-right">
-                      <span className="PortfolioPage__table-price">$212.45</span>
-                      <span className="PortfolioPage__table-change PortfolioPage__table-change--positive">+1.32%</span>
-                    </td>
-                    <td className="PortfolioPage__table-right">45</td>
-                    <td className="PortfolioPage__table-right">$172.10</td>
-                    <td className="PortfolioPage__table-right PortfolioPage__table-value">$9,560.25</td>
-                    <td className="PortfolioPage__table-right">
-                      <div className="PortfolioPage__table-return PortfolioPage__table-return--positive">+$1,825.80</div>
-                      <span className="PortfolioPage__table-badge PortfolioPage__table-badge--positive">+23.6%</span>
-                    </td>
-                    <td className="PortfolioPage__table-center">
-                      <button className="PortfolioPage__action-btn">•••</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="PortfolioPage__ticker-cell">
-                        <div className="PortfolioPage__ticker-icon">MS</div>
-                        <div>
-                          <a href="#" className="PortfolioPage__ticker-link">MSFT</a>
-                          <div className="PortfolioPage__ticker-name">Microsoft Corp</div>
+                      </td>
+                      <td className="PortfolioPage__table-right">
+                        <span className="PortfolioPage__table-price">${asset.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        {/* <span className="PortfolioPage__table-change PortfolioPage__table-change--positive">+1.32%</span> */}
+                      </td>
+                      <td className="PortfolioPage__table-right">{asset.quantity}</td>
+                      <td className="PortfolioPage__table-right">${asset.averagePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="PortfolioPage__table-right PortfolioPage__table-value">${asset.currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="PortfolioPage__table-right">
+                        <div className={`PortfolioPage__table-return ${asset.totalProfit >= 0 ? 'PortfolioPage__table-return--positive' : 'PortfolioPage__table-return--negative'}`}>
+                          {asset.totalProfit >= 0 ? '+' : ''}${asset.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
-                      </div>
-                    </td>
-                    <td className="PortfolioPage__table-right">
-                      <span className="PortfolioPage__table-price">$415.00</span>
-                      <span className="PortfolioPage__table-change PortfolioPage__table-change--negative">-0.45%</span>
-                    </td>
-                    <td className="PortfolioPage__table-right">20</td>
-                    <td className="PortfolioPage__table-right">$350.00</td>
-                    <td className="PortfolioPage__table-right PortfolioPage__table-value">$8,300.00</td>
-                    <td className="PortfolioPage__table-right">
-                      <div className="PortfolioPage__table-return PortfolioPage__table-return--positive">+$1,300.00</div>
-                      <span className="PortfolioPage__table-badge PortfolioPage__table-badge--positive">+18.5%</span>
-                    </td>
-                    <td className="PortfolioPage__table-center">
-                      <button className="PortfolioPage__action-btn">•••</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <div className="PortfolioPage__ticker-cell">
-                        <div className="PortfolioPage__ticker-icon">O</div>
-                        <div>
-                          <a href="#" className="PortfolioPage__ticker-link">O</a>
-                          <div className="PortfolioPage__ticker-name">Realty Income</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="PortfolioPage__table-right">
-                      <span className="PortfolioPage__table-price">$58.20</span>
-                      <span className="PortfolioPage__table-change">0.00%</span>
-                    </td>
-                    <td className="PortfolioPage__table-right">100</td>
-                    <td className="PortfolioPage__table-right">$60.50</td>
-                    <td className="PortfolioPage__table-right PortfolioPage__table-value">$5,820.00</td>
-                    <td className="PortfolioPage__table-right">
-                      <div className="PortfolioPage__table-return PortfolioPage__table-return--negative">-$230.00</div>
-                      <span className="PortfolioPage__table-badge PortfolioPage__table-badge--negative">-3.8%</span>
-                    </td>
-                    <td className="PortfolioPage__table-center">
-                      <button className="PortfolioPage__action-btn">•••</button>
-                    </td>
-                  </tr>
+                        <span className={`PortfolioPage__table-badge ${asset.totalProfitRate >= 0 ? 'PortfolioPage__table-badge--positive' : 'PortfolioPage__table-badge--negative'}`}>
+                          {asset.totalProfitRate >= 0 ? '+' : ''}{asset.totalProfitRate.toFixed(2)}%
+                        </span>
+                      </td>
+                      <td className="PortfolioPage__table-center">
+                        <button className="PortfolioPage__action-btn">•••</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!portfolioDetails || portfolioDetails.assetDtos.length === 0) && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
+                        No holdings yet. Add a transaction to see your assets.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
             <div className="PortfolioPage__holdings-footer">
-              <span>Showing 3 of 12 holdings</span>
+              <span>Showing {portfolioDetails?.assetDtos.length || 0} holdings</span>
               <div className="PortfolioPage__pagination">
                 <button className="PortfolioPage__pagination-btn" disabled>Previous</button>
-                <button className="PortfolioPage__pagination-btn">Next</button>
+                <button className="PortfolioPage__pagination-btn" disabled>Next</button>
               </div>
             </div>
           </div>

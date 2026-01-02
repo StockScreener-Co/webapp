@@ -75,7 +75,7 @@ export const Navigation = () => {
                 portfolios.map((portfolio) => (
                   <Link
                     key={portfolio.id || portfolio.name}
-                    to="/portfolio"
+                    to={`/portfolio/${portfolio.id}`}
                     className="Navigation__dropdown-item"
                   >
                     {portfolio.name}
