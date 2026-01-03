@@ -45,12 +45,14 @@
     gap: 12px;
   }
 
-  &__logout {
+  &__logout,
+  &__login {
     font-size: 14px;
     color: $primary-text-color;
     background: none;
     border: none;
     cursor: pointer;
+    text-decoration: none;
     transition: color 0.2s;
 
     &:hover {

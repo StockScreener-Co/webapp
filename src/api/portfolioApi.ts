@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+import { apiFetch } from './apiClient';
 
 export interface CreatePortfolioRequest {
   name: string;
@@ -41,105 +41,37 @@ export interface PortfolioDetailsDto {
 }
 
 export const createPortfolio = async (name: string): Promise<Portfolio> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/portfolios`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name } as CreatePortfolioRequest),
-    });
+  const response = await apiFetch('/portfolios', {
+    method: 'POST',
+    body: JSON.stringify({ name } as CreatePortfolioRequest),
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to create portfolio: ${response.status} ${errorText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error(
-        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
-      );
-    }
-    throw error;
-  }
+  return response.json();
 };
 
 export const createTransaction = async (
   portfolioId: string,
   payload: TransactionRequestDto,
 ): Promise<void> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/portfolios/${portfolioId}/transactions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to create transaction: ${response.status} ${errorText}`);
-    }
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error(
-        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
-      );
-    }
-    throw error;
-  }
+  await apiFetch(`/portfolios/${portfolioId}/transactions`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 };
 
 export const getPortfolioDetails = async (id: string): Promise<PortfolioDetailsDto> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/portfolios/${id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await apiFetch(`/portfolios/${id}`, {
+    method: 'GET',
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch portfolio details: ${response.status} ${errorText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error(
-        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
-      );
-    }
-    throw error;
-  }
+  return response.json();
 };
 
 export const getMyPortfolios = async (): Promise<Portfolio[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/portfolios/my`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+  const response = await apiFetch('/portfolios/my', {
+    method: 'GET',
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to fetch portfolios: ${response.status} ${errorText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error(
-        'Cannot connect to backend server. Please make sure the backend is running on http://localhost:8080'
-      );
-    }
-    throw error;
-  }
+  return response.json();
 };
 

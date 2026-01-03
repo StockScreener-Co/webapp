@@ -1,8 +1,17 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Navigation } from '../HeaderNav/HeaderNav';
+import { useAuth } from '../../context/AuthContext';
 import './Header.scss';
 
 export const Header = () => {
+  const { isLoggedIn, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <header className='Header'>
       <div className='container'>
@@ -13,7 +22,11 @@ export const Header = () => {
           </Link>
           <Navigation />
           <div className='Header__actions'>
-            <button className='Header__logout'>Log out</button>
+            {isLoggedIn ? (
+              <button className='Header__logout' onClick={handleLogout}>Log out</button>
+            ) : (
+              <Link to="/login" className='Header__login'>Login</Link>
+            )}
           </div>
         </div>
       </div>
