@@ -1,7 +1,10 @@
-const API_BASE_URL = 'https://core-production-5602.up.railway.app/api/v1';
-//http://localhost:8080
+const API_BASE_URL = 
+  process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
 
-const getAuthHeaders = (): Record<string, string> => {
+const getAuthHeaders = (endpoint: string): Record<string, string> => {
+  if (endpoint.includes('/auth/login') || endpoint.includes('/auth/registration')) {
+    return {};
+  }
   const token = localStorage.getItem('token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
@@ -11,7 +14,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...getAuthHeaders(),
+    ...getAuthHeaders(endpoint),
   };
 
   if (options.headers) {
@@ -38,7 +41,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   } catch (error) {
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
       throw new Error(
-        'Cannot connect to backend server. Please make sure the backend is running on https://core-production-5602.up.railway.app'
+        `Cannot connect to backend server. Please make sure the backend is running on ${API_BASE_URL}`
       );
     }
     throw error;

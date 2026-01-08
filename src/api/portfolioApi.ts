@@ -32,6 +32,8 @@ export interface AssetDto {
   dividendYieldOnCostRate: number;
   totalProfit: number;
   totalProfitRate: number;
+  dailyProfit: number;
+  dailyProfitRate: number;
 }
 
 export interface PortfolioDetailsDto {
@@ -73,5 +75,11 @@ export const getMyPortfolios = async (): Promise<Portfolio[]> => {
   });
 
   return response.json();
+};
+
+export const deleteAsset = async (portfolioId: string, assetId: string): Promise<void> => {
+  await apiFetch(`/portfolios/${portfolioId}/asset/${assetId}`, {
+    method: 'DELETE',
+  });
 };
 

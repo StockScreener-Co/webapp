@@ -5,7 +5,7 @@ import { AddTransactionModal, AddTransactionForm } from '../../components/AddTra
 import { ConfirmationModal } from '../../components/ConfirmationModal/ConfirmationModal';
 import { createTransaction, getPortfolioDetails, PortfolioDetailsDto, deleteAsset } from '../../api/portfolioApi';
 
-export const PortfolioPage = () => {
+export const HoldingsPage = () => {
   const { id: portfolioId } = useParams<{ id: string }>();
 
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
@@ -165,20 +165,18 @@ export const PortfolioPage = () => {
             <div>
               <div className="PortfolioPage__title-row">
                 <h1 className="PortfolioPage__title">{portfolioDetails?.name || 'Portfolio'}</h1>
-              </div>
-              <div className="PortfolioPage__subtitle">
                 <span className="PortfolioPage__badge">Active</span>
-                <span className="PortfolioPage__holdings-count">
-                  {portfolioDetails?.assetDtos.length || 0} assets
-                </span>
               </div>
+              <p className="PortfolioPage__subtitle">
+                ID: {portfolioId} · Holdings: {portfolioDetails?.assetDtos.length || 0}
+              </p>
             </div>
             <div className="PortfolioPage__actions">
               <button className="PortfolioPage__btn PortfolioPage__btn--secondary">
                 Analytics
               </button>
-              <button className="PortfolioPage__btn PortfolioPage__btn--secondary">
-                Transactions
+              <button className="PortfolioPage__btn PortfolioPage__btn--primary" onClick={openTxModal}>
+                + Add Transaction
               </button>
             </div>
           </div>
@@ -227,21 +225,13 @@ export const PortfolioPage = () => {
         </div>
       </section>
 
+
       {/* Holdings Section */}
       <section className="PortfolioPage__holdings">
         <div className="container">
           <div className="PortfolioPage__holdings-card">
             <div className="PortfolioPage__holdings-header">
-              <div className="PortfolioPage__holdings-title-group">
-                <h3 className="PortfolioPage__holdings-title">Holdings</h3>
-                <button 
-                  className="PortfolioPage__add-btn-small" 
-                  onClick={openTxModal}
-                  title="Add Transaction"
-                >
-                  +
-                </button>
-              </div>
+              <h3 className="PortfolioPage__holdings-title">Holdings</h3>
               <input
                 type="text"
                 placeholder="Filter ticker..."
@@ -258,9 +248,7 @@ export const PortfolioPage = () => {
                     <th className="PortfolioPage__table-right">Qty</th>
                     <th className="PortfolioPage__table-right">Avg Cost</th>
                     <th className="PortfolioPage__table-right">Total Value</th>
-                    <th className="PortfolioPage__table-right">Dividend yield</th>
                     <th className="PortfolioPage__table-right">Total Return</th>
-                    <th className="PortfolioPage__table-right">Today</th>
                     <th className="PortfolioPage__table-center">Action</th>
                   </tr>
                 </thead>
@@ -284,27 +272,11 @@ export const PortfolioPage = () => {
                       <td className="PortfolioPage__table-right">${formatCurrency(asset.averagePrice)}</td>
                       <td className="PortfolioPage__table-right PortfolioPage__table-value">${formatCurrency(asset.currentValue)}</td>
                       <td className="PortfolioPage__table-right">
-                        <div className="PortfolioPage__table-yield">
-                          {formatPercent(asset.dividendYieldRate)}
-                        </div>
-                        <span className="PortfolioPage__table-yield-on-cost">
-                          {formatPercent(asset.dividendYieldOnCostRate)}
-                        </span>
-                      </td>
-                      <td className="PortfolioPage__table-right">
                         <div className={`PortfolioPage__table-return ${asset.totalProfit >= 0 ? 'PortfolioPage__table-return--positive' : 'PortfolioPage__table-return--negative'}`}>
                           {asset.totalProfit >= 0 ? '+' : ''}${formatCurrency(asset.totalProfit)}
                         </div>
                         <span className={`PortfolioPage__table-badge ${asset.totalProfitRate >= 0 ? 'PortfolioPage__table-badge--positive' : 'PortfolioPage__table-badge--negative'}`}>
                           {asset.totalProfitRate >= 0 ? '+' : ''}{formatPercent(asset.totalProfitRate)}
-                        </span>
-                      </td>
-                      <td className="PortfolioPage__table-right">
-                        <div className={`PortfolioPage__table-return ${asset.dailyProfit >= 0 ? 'PortfolioPage__table-return--positive' : 'PortfolioPage__table-return--negative'}`}>
-                          {asset.dailyProfit >= 0 ? '+' : ''}${formatCurrency(asset.dailyProfit)}
-                        </div>
-                        <span className={`PortfolioPage__table-badge ${asset.dailyProfitRate >= 0 ? 'PortfolioPage__table-badge--positive' : 'PortfolioPage__table-badge--negative'}`}>
-                          {asset.dailyProfitRate >= 0 ? '+' : ''}{formatPercent(asset.dailyProfitRate)}
                         </span>
                       </td>
                       <td className="PortfolioPage__table-center">
@@ -352,7 +324,7 @@ export const PortfolioPage = () => {
                   ))}
                   {(!portfolioDetails || portfolioDetails.assetDtos.length === 0) && (
                     <tr>
-                      <td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }}>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '2rem' }}>
                         No holdings yet. Add a transaction to see your assets.
                       </td>
                     </tr>
